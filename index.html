@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#b5283c">
+<title>Tu calendario de Navidad</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#fbf3ee;--card:#fff;--ink:#3a1f24;--muted:#8a6a6e;--main:#b5283c;--gold:#c9962b;--lock:#e9dcd6;color-scheme:light}
+:root.green{--main:#2f6b4f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1114;--card:#2a181c;--ink:#f6e7e3;--muted:#c3a3a7;--lock:#38262a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1d1114;--card:#2a181c;--ink:#f6e7e3;--muted:#c3a3a7;--lock:#38262a;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;text-align:center;min-height:100%}
+.screen{display:none;padding:28px 16px 40px;min-height:100vh}
+.screen.on{display:block}
+#intro.on{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.env{width:230px;height:150px;background:var(--main);border-radius:10px;position:relative;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.25);margin:24px 0}
+.env:before{content:"";position:absolute;inset:0;background:linear-gradient(to bottom right,transparent 49%,rgba(0,0,0,.18) 50%) left/50% 100% no-repeat,linear-gradient(to bottom left,transparent 49%,rgba(0,0,0,.18) 50%) right/50% 100% no-repeat;border-radius:10px}
+.seal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:1.6rem}
+.env:hover{transform:scale(1.03)}
+h1{margin:6px 0;font-size:1.9rem;color:var(--main)}
+.sub{color:var(--muted);font-style:italic;margin:0 0 20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:10px;max-width:640px;margin:0 auto}
+button.d{position:relative;aspect-ratio:1;border:0;border-radius:14px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.25);transition:transform .15s}
+button.d:not(.locked):hover{transform:translateY(-3px) rotate(-2deg)}
+button.d .b{position:relative;z-index:2;width:60%;aspect-ratio:1;border-radius:50%;background:#fffaf0;color:#7a1f2b;display:flex;flex-direction:column;align-items:center;justify-content:center;font:700 1.2rem Georgia,serif;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+button.d .b small{font:.55rem system-ui,sans-serif;color:#8a6a6e;font-weight:400;margin-top:3px}
+button.d:after{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:1.1rem;z-index:3}
+.s0{background:linear-gradient(90deg,transparent 43%,#e8c15a 43% 57%,transparent 57%),linear-gradient(0deg,transparent 43%,#e8c15a 43% 57%,transparent 57%),#b5283c}
+.s0:after{content:"🎀"}
+.s1{background:repeating-linear-gradient(45deg,#fff 0 8px,#c0283c 8px 16px)}
+.s1:after{content:"🍬"}
+.s2{background:linear-gradient(90deg,transparent 43%,#b5283c 43% 57%,transparent 57%),linear-gradient(0deg,transparent 43%,#b5283c 43% 57%,transparent 57%),#2f6b4f}
+.s2:after{content:"🎀"}
+.s3{background:radial-gradient(circle at 50% 50%,#e8c15a 0 2px,transparent 3px) 0 0/14px 14px,#1f5a43;border-radius:50%!important}
+.s3:after{content:"❄️"}
+.s4{background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.45),transparent 45%),#c9962b}
+.s4:after{content:"⭐"}
+button.d.last{grid-column:1/-1;aspect-ratio:auto;min-height:118px;margin-top:8px;border:3px solid #fff3b0;border-radius:22px;background:linear-gradient(90deg,transparent 46%,#b5283c 46% 54%,transparent 54%),linear-gradient(135deg,#ffe58a,#c9962b 50%,#ffe58a);animation:glow 2.2s infinite}
+button.d.last:before{content:"✨";position:absolute;left:16px;top:10px;font-size:1.5rem;z-index:3}
+button.d.last:after{content:"🎅";font-size:2rem;top:-22px}
+button.d.last .b{width:auto;aspect-ratio:auto;padding:14px 34px;border-radius:999px;flex-direction:row;gap:10px;font-size:1.5rem;background:#fffaf0;border:2px solid #c9962b}
+button.d.last .b small{font-size:.7rem;margin:0}
+button.d.last.done .b{font-size:1.4rem}
+@keyframes glow{50%{box-shadow:0 0 26px 8px rgba(255,213,74,.9)}}
+button.d.locked{cursor:default}
+button.d.locked .b{background:#fffaf0}
+button.d.done .b{background:#fff;font-size:1.6rem}
+button.d.today{box-shadow:0 0 0 3px #ffd54a,0 0 16px 5px rgba(255,213,74,.85);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{transform:scale(1.07)}}
+.lights{display:flex;justify-content:center;gap:14px;margin:0 0 14px;padding-top:6px;border-top:2px solid #555;max-width:640px;margin-left:auto;margin-right:auto}
+.lights i{width:12px;height:16px;border-radius:50% 50% 55% 55%;margin-top:-2px;animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.35;transform:scale(.9)}}
+#snow{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+#snow span{position:absolute;top:-8vh;color:#fff;text-shadow:0 0 3px rgba(120,120,160,.8);animation:fall linear infinite}
+@keyframes fall{to{transform:translate(30px,112vh)}}
+.screen{position:relative;z-index:1}
+.deco{font-size:1.6rem;letter-spacing:.4em;margin-top:26px}
+body{background:linear-gradient(180deg,rgba(181,40,60,.10),transparent 220px),var(--bg)}
+@media (prefers-reduced-motion:reduce){#snow{display:none}.lights i,button.d.today,button.d.last{animation:none}}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}
+.modal.on{display:flex}
+.box{background:var(--card);border-radius:20px;max-width:440px;width:100%;padding:26px 22px;max-height:86vh;overflow:auto}
+.box.vale{border:3px dashed var(--main)}
+.box.big{border:3px solid var(--gold)}
+.box .n{color:var(--main);font-size:.85rem;letter-spacing:.1em;text-transform:uppercase}
+.box .e{font-size:2.6rem;margin:6px 0}
+.box h2{margin:0 0 10px;font-size:1.4rem}
+.box p{margin:0 0 16px;line-height:1.55;font-size:1.05rem;white-space:pre-line}
+.box img{max-width:100%;border-radius:12px;margin:0 0 14px}
+.box audio{width:100%;margin:0 0 14px}
+.btn{display:inline-block;background:var(--main);color:#fff;border:0;border-radius:999px;padding:10px 24px;font:1rem Georgia,serif;cursor:pointer;text-decoration:none;margin:4px}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--muted)}
+input{font:1.1rem Georgia,serif;padding:10px;border-radius:10px;border:1px solid var(--muted);background:var(--card);color:var(--ink);text-align:center;margin:10px 0;width:180px}
+.tip{color:var(--muted);font-size:.85rem;margin-top:22px}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:30}
+</style>
+</head>
+<body>
+<canvas id="cf"></canvas>
+<div id="snow"></div>
+
+<!-- Pantalla de PIN (solo si CONFIG.pin tiene valor) -->
+<section class="screen" id="pin"><h1>🔒</h1><p class="sub">Escribe el PIN que te dieron</p><input id="pi" type="password" inputmode="numeric" autocomplete="off"><br><button class="btn" id="pb">Entrar</button><p class="tip" id="pe"></p></section>
+
+<!-- Sobre de entrada -->
+<section class="screen" id="intro"><p class="sub" id="from"></p><h1 id="to"></h1><div class="env" id="env"><div class="seal">❤️</div></div><p class="sub">Toca el sobre para abrirlo</p></section>
+
+<!-- Calendario -->
+<section class="screen" id="cal"><div class="lights" id="lt"></div><h1 id="ct"></h1><p class="sub" id="cs"></p><div class="grid" id="g"></div><p class="tip" id="tip">Cada puerta se abre en su día. Las que ya abriste se quedan abiertas.</p><div class="deco">🎅 🎄 ⛄ 🎁 🦌</div></section>
+
+<div class="modal" id="m"><div class="box" id="bx"><div class="n" id="mn"></div><div class="e" id="me"></div><h2 id="mt"></h2><div id="mx"></div><button class="btn" id="mc">Cerrar</button></div></div>
+
+<div class="modal" id="adm"><div class="box"><h2>🔑 Administrador</h2><input id="ap" type="password" autocomplete="off" placeholder="Contraseña"><p class="tip" id="ae"></p><button class="btn" id="ab">Entrar</button><button class="btn ghost" id="ax">Cancelar</button></div></div>
+<script>
+/* ============ ✏️ EDITA SOLO ESTA PARTE ============ */
+var CONFIG={
+  para:"mi amor",            // su nombre, aparece en el sobre
+  de:"Con cariño, de parte de tu chico",  // quién lo envía
+  titulo:"Nuestro calendario de Navidad",
+  color:"red",               // "red" o "green"
+  pin:"",                    // pon un PIN (ej. "1225") o déjalo vacío. No es seguridad real, solo una barrera ligera
+  inicio:[2026,12,1]        // año, mes (1-12), día en que se abre la primera puerta
+};
+/* Cada puerta: [emoji, título, mensaje, extras opcionales]
+   extras: {img:"fotos/1.jpg", audio:"audios/1.mp3", link:"https://...", linkTexto:"Escucharla", tipo:"vale"}
+   Las fotos y audios los subes al mismo repositorio de GitHub y pones la ruta relativa. */
+var D=[
+["🎵","Nuestra playlist","Escanea el código y dale al play: todas estas canciones tienen algo tuyo o me recuerdan a nosotros.",{link:"https://open.spotify.com/",linkTexto:"Abrir la playlist"}],
+["📓","3 cosas que admiro de ti","A veces se me olvida decírtelo en voz alta, así que te lo dejo por escrito para que lo leas siempre que quieras."],
+["🍫","Chocolatina favorita","Para empezar esta cuenta atrás con el mejor sabor posible. ¡Disfrútalo!"],
+["🧩","Sopa de letras","He escondido aquí dentro recuerdos nuestros y cosas que me encantan de ti. ¡A ver cuánto tardas en encontrarlos todos!"],
+["💄","Bálsamo labial","Para que el frío no te pare y tus labios estén siempre perfectos."],
+["🖼️","Foto nuestra","Mirando esta foto solo puedo pensar en lo mucho que me alegro de que formes parte de mis días. Eres mi casualidad favorita."],
+["🧦","Calcetines calentitos","Para tener los pies calentitos en casa (aunque siempre puedes meterlos debajo de mis piernas)."],
+["🍬","Chuches","Un capricho dulce para alegrarte el día porque te lo mereces."],
+["🛁","Mascarilla o bomba de baño","Hoy toca desconectar del mundo. Date un respiro, ponte música y relájate un rato."],
+["🍪","Galletas o bombones","Prohibido compartir (bueno, si me das uno no me quejo)."],
+["🔑","Llavero o pin","Para que lleves un trocito de mí contigo vayas donde vayas."],
+["🕯️","Vela aromática","Enciéndela cuando quieras un ambiente acogedor. Huele casi tan bien como tú."],
+["🍿","Palomitas","Abre esto y ponte cómoda. Hoy manda la jefa: tú eliges la peli, pides la comida que te apetezca y yo me encargo de todo lo demás.",{tipo:"vale"}],
+["☕","Chocolate caliente","Pon el abrigo y prepárate: nos vamos a buscar las luces más bonitas de la ciudad con este chocolate bien calentito."],
+["🥾","Nota de ruta","Guarda energía: hoy nos escapamos a dar un paseo largo por la naturaleza."],
+["🫙","Bote de abrazos y besos","Vale infinito: abre este bote y saca un papelito cada vez que necesites un abrazo fuerte o un beso.",{tipo:"vale"}],
+["📷","Marco de fotos vacío","Este marco está vacío por una razón: vamos a rellenarlo pronto. Prepárate para una tarde de fotos juntos haciendo el tonto."],
+["🎀","Pinzas, coleteros o diadema","Un pequeño detalle para recogerte el pelo cuando quieras estar cómoda (aunque me encantas de cualquier forma)."],
+["🧤","Guantes de invierno","Para que no tengas excusa para soltarme la mano cuando salgamos a pasear este invierno."],
+["🎄","Dulce navideño","Esto ya empieza a oler a Navidad de verdad. ¡Disfruta de este clásico de estas fechas!"],
+["🎨","Un retrato nuestro","No soy Picasso, pero este retrato nuestro está hecho con todo el cariño del mundo."],
+["🃏","Comodín del sí","Guarda esto como oro en paño: sirve para ganar cualquier discusión sobre qué cenar o qué película ver sin que yo pueda quejarme.",{tipo:"vale"}],
+["🎟️","Ticket dorado","Pase VIP válido por una mañana entera de desayuno en la cama sin mover ni un dedo.",{tipo:"vale"}],
+["✉️","Ábrelo en un mal día","Si hoy las cosas no han salido como querías, lee esto: recuerda lo fuerte que eres y que siempre estoy aquí para sostenerte."],
+["🌟","Regalo principal y carta final","Hemos llegado al final de estos 25 días, pero lo mejor de todo es lo que nos queda por vivir juntos. Gracias por cada risa, por aguantarme y por ser mi persona favorita.\n\n¡Feliz Navidad!",{tipo:"gran"}]
+];
+/* ============ FIN DE LA PARTE EDITABLE ============ */
+
+var M=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+var $=function(i){return document.getElementById(i)};
+var opened={},preview=false,clicks=0;
+try{opened=JSON.parse(localStorage.getItem("cal-open")||"{}")}catch(e){}
+function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function dt(i){return new Date(CONFIG.inicio[0],CONFIG.inicio[1]-1,CONFIG.inicio[2]+i)}
+function unlocked(i){if(preview)return true;var n=new Date();n.setHours(0,0,0,0);return n>=dt(i)}
+function same(a,b){return a.toDateString()===b.toDateString()}
+function go(id){["pin","intro","cal"].forEach(function(s){$(s).classList.toggle("on",s===id)})}
+
+function render(){
+  var g=$("g");g.innerHTML="";
+  D.forEach(function(x,i){
+    var d=dt(i),u=unlocked(i),b=document.createElement("button");
+    var last=i===D.length-1;
+    b.className="d s"+(i%5)+(u?"":" locked")+(opened[i]?" done":"")+(same(d,new Date())?" today":"")+(last?" last":"");
+    b.innerHTML='<span class="b">'+(last?(u?(opened[i]?x[0]+" ¡Feliz Navidad!":"🎁 Día 25"):"🔒 Navidad"):(u?(opened[i]?x[0]:d.getDate()):"🔒"))+(last?"":"<small>"+d.getDate()+" "+M[d.getMonth()]+"</small>")+"</span>";
+    b.onclick=function(){if(u)show(i)};
+    g.appendChild(b);
+  });
+}
+function show(i){
+  var x=D[i],ex=x[3]||{},bx=$("bx"),mx=$("mx");
+  if(!preview){opened[i]=1;store("cal-open",JSON.stringify(opened))}
+  bx.className="box"+(ex.tipo==="vale"?" vale":"")+(ex.tipo==="gran"?" big":"");
+  $("mn").textContent=(ex.tipo==="vale"?"Vale · ":"")+"Día "+(i+1)+" · "+dt(i).getDate()+" "+M[dt(i).getMonth()];
+  $("me").textContent=x[0];$("mt").textContent=x[1];
+  mx.innerHTML="";
+  if(ex.img){var im=document.createElement("img");im.src=ex.img;im.alt="";mx.appendChild(im)}
+  var p=document.createElement("p");p.textContent=x[2];mx.appendChild(p);
+  if(ex.audio){var a=document.createElement("audio");a.controls=true;a.src=ex.audio;mx.appendChild(a)}
+  if(ex.link){var l=document.createElement("a");l.className="btn ghost";l.href=ex.link;l.target="_blank";l.rel="noopener";l.textContent=ex.linkTexto||"Abrir enlace";mx.appendChild(l);mx.appendChild(document.createElement("br"))}
+  $("m").classList.add("on");
+  if(ex.tipo==="gran")confetti();
+  render();
+}
+$("mc").onclick=function(){$("m").classList.remove("on")};
+
+/* Confeti simple */
+function confetti(){
+  var c=$("cf"),x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;
+  var cols=["#b5283c","#c9962b","#2f6b4f","#f2c6cf","#ffffff"],ps=[];
+  for(var i=0;i<140;i++)ps.push({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,r:4+Math.random()*5,vy:2+Math.random()*3,vx:-1+Math.random()*2,c:cols[i%5],a:Math.random()*6});
+  var t=0;(function f(){x.clearRect(0,0,c.width,c.height);ps.forEach(function(p){p.y+=p.vy;p.x+=p.vx+Math.sin(p.a+=.05);x.fillStyle=p.c;x.fillRect(p.x,p.y,p.r,p.r*1.6)});
+  if(++t<260)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height)})();
+}
+
+/* Luces y nieve */
+(function(){
+  var cols=["#e63946","#ffd54a","#4cc38a","#4ea1ff","#ff8fab"],lt=$("lt");
+  for(var i=0;i<14;i++){var e=document.createElement("i");e.style.background=cols[i%5];e.style.boxShadow="0 0 8px "+cols[i%5];e.style.animationDelay=(i%5)*.3+"s";lt.appendChild(e)}
+  var sn=$("snow");
+  for(var j=0;j<34;j++){var f=document.createElement("span");f.textContent="❄";f.style.left=Math.random()*100+"%";f.style.fontSize=(8+Math.random()*14)+"px";f.style.opacity=.5+Math.random()*.5;f.style.animationDuration=(9+Math.random()*10)+"s";f.style.animationDelay=(-Math.random()*15)+"s";sn.appendChild(f)}
+})();
+
+/* Arranque */
+document.documentElement.classList.toggle("green",CONFIG.color==="green");
+document.title=CONFIG.titulo;
+$("from").textContent=CONFIG.de;$("to").textContent="Para "+CONFIG.para;
+$("ct").textContent="🎄 "+CONFIG.titulo+" 🎄";
+var f=dt(0),l=dt(D.length-1);
+$("cs").textContent="Una sorpresa cada día, del "+f.getDate()+" de "+["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][f.getMonth()]+" al "+l.getDate()+" de diciembre";
+var TIP="Cada puerta se abre en su día. Las que ya abriste se quedan abiertas.",ADMIN_HASH="d6be43542d0605746e99ed36a419f64f10a4f864919da1d517753f516595f06c",clickT;
+function sha256(ascii){
+  function rr(v,a){return(v>>>a)|(v<<(32-a))}
+  var mp=Math.pow,mw=mp(2,32),i,j,res="",words=[],bl=ascii.length*8,hash=sha256.h=sha256.h||[],k=sha256.k=sha256.k||[],pc=k.length,ic={};
+  for(var c=2;pc<64;c++){if(!ic[c]){for(i=0;i<313;i+=c)ic[i]=c;hash[pc]=(mp(c,.5)*mw)|0;k[pc++]=(mp(c,1/3)*mw)|0}}
+  ascii+="\x80";while(ascii.length%64-56)ascii+="\x00";
+  for(i=0;i<ascii.length;i++){j=ascii.charCodeAt(i);if(j>>8)return"";words[i>>2]|=j<<((3-i)%4)*8}
+  words[words.length]=(bl/mw)|0;words[words.length]=bl;
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16),old=hash;hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15],w2=w[i-2],a=hash[0],e=hash[4];
+      var t1=hash[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]+(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      var t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(t1+t2)|0].concat(hash);hash[4]=(hash[4]+t1)|0;
+    }
+    for(i=0;i<8;i++)hash[i]=(hash[i]+old[i])|0;
+  }
+  for(i=0;i<8;i++)for(j=3;j+1;j--){var b=(hash[i]>>(j*8))&255;res+=((b<16)?"0":"")+b.toString(16)}
+  return res;
+}
+/* Modo administrador: toca el título 5 veces, o abre la página con #admin al final del enlace */
+function adminOpen(){$("ae").textContent="";$("ap").value="";$("adm").classList.add("on");setTimeout(function(){$("ap").focus()},50)}
+function adminTry(){
+  if(sha256("cal2026:"+$("ap").value)===ADMIN_HASH){$("adm").classList.remove("on");preview=true;$("tip").textContent="🔓 Modo administrador: ves todas las puertas sin esperar. Toca el título 5 veces para salir.";render()}
+  else $("ae").textContent="Contraseña incorrecta";
+}
+$("ab").onclick=adminTry;
+$("ax").onclick=function(){$("adm").classList.remove("on")};
+$("ap").onkeydown=function(e){if(e.key==="Enter")adminTry()};
+$("ct").onclick=function(){
+  clearTimeout(clickT);clicks++;clickT=setTimeout(function(){clicks=0},1500);
+  if(clicks<5)return;clicks=0;
+  if(preview){preview=false;$("tip").textContent=TIP;render();return}
+  adminOpen();
+};
+function chkAdmin(){if(location.hash==="#admin"){go("cal");render();adminOpen()}}
+window.addEventListener("hashchange",chkAdmin);
+$("env").onclick=function(){store("cal-intro","1");go("cal");render()};
+function start(){var seen=false;try{seen=localStorage.getItem("cal-intro")==="1"}catch(e){}if(seen){go("cal");render()}else go("intro")}
+if(CONFIG.pin){
+  var ok=false;try{ok=localStorage.getItem("cal-pin")==="1"}catch(e){}
+  if(ok)start();else{go("pin");$("pb").onclick=function(){if($("pi").value===CONFIG.pin){store("cal-pin","1");start()}else $("pe").textContent="PIN incorrecto"}}
+}else start();
+chkAdmin();
+</script>
+</body>
+</html>
